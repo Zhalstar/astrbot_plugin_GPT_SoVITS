@@ -48,7 +48,6 @@ class GPTSoVITSPlugin(Star):
         b64 = base64.urlsafe_b64encode(res.data).decode()
         return Record.fromBase64(b64)
 
-
     async def _get_emotion_params(
         self, event: AstrMessageEvent, text: str
     ) -> dict | None:
@@ -96,8 +95,7 @@ class GPTSoVITSPlugin(Star):
         # 合并所有Plain文本
         combined_text = "\n".join(plain_texts)
 
-        # 仅允许一定长度以下的文本通过
-        if len(combined_text) > cfg.max_msg_len:
+        if not combined_text.strip() or len(combined_text) > cfg.max_msg_len:
             return
 
         params = await self._get_emotion_params(event, combined_text)
@@ -137,6 +135,9 @@ class GPTSoVITSPlugin(Star):
         Args:
             message(string): 要讲的话
         """
+        if not isinstance(message, str) or not message.strip():
+            return "message must not be blank"
+
         try:
             params = await self._get_emotion_params(event, message)
             res = await self.service.inference(message, extra_params=params)
